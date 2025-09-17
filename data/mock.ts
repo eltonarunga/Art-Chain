@@ -1,4 +1,3 @@
-
 import { User, Artwork, Transaction } from '../types';
 
 export const mockUsers: User[] = [
@@ -85,3 +84,4 @@ export const mockTransactions: Transaction[] = [
 export const getArtworks = (): Promise<Artwork[]> => new Promise(resolve => setTimeout(() => resolve(mockArtworks), 1000));
 export const getArtworkById = (id: number): Promise<Artwork | undefined> => new Promise(resolve => setTimeout(() => resolve(mockArtworks.find(art => art.id === id)), 500));
 export const getTransactionsByArtworkId = (id: number): Promise<Transaction[]> => new Promise(resolve => setTimeout(() => resolve(mockTransactions.filter(tx => tx.artworkId === id)), 500));
+export const getUserById = (id: string): Promise<User | undefined> => new Promise(resolve => setTimeout(() => resolve(mockUsers.find(user => user.id === id)), 500));

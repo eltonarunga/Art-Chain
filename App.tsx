@@ -21,6 +21,7 @@ const App: React.FC = () => {
               <Route path="/artwork/:id" element={<ArtworkDetailPage />} />
               <Route path="/create" element={<CreatePage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/:id" element={<ProfilePage />} />
             </Routes>
           </main>
           <Footer />

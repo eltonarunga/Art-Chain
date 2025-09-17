@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Artwork } from '../types';
 
 interface ArtworkCardProps {
@@ -8,6 +7,14 @@ interface ArtworkCardProps {
 }
 
 const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
+  const navigate = useNavigate();
+
+  const handleArtistClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    navigate(`/profile/${artwork.artist.id}`);
+  };
+
   return (
     <div className="bg-slate-900 rounded-lg overflow-hidden group border border-slate-800 hover:border-violet-500 transition-all duration-300 transform hover:-translate-y-1">
       <Link to={`/artwork/${artwork.id}`} className="block">
@@ -16,9 +23,16 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         </div>
         <div className="p-4">
           <h3 className="text-lg font-semibold truncate group-hover:text-violet-400 transition-colors">{artwork.title}</h3>
-          <div className="flex items-center mt-2">
-            <img src={artwork.artist.avatarUrl} alt={artwork.artist.name} className="w-6 h-6 rounded-full mr-2" />
-            <span className="text-sm text-slate-400">{artwork.artist.name}</span>
+          <div
+            className="flex items-center mt-2 cursor-pointer"
+            onClick={handleArtistClick}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleArtistClick(e); }}
+            role="link"
+            tabIndex={0}
+            aria-label={`View profile of ${artwork.artist.name}`}
+          >
+            <img src={artwork.artist.avatarUrl} alt="" className="w-6 h-6 rounded-full mr-2" />
+            <span className="text-sm text-slate-400 hover:text-violet-400 transition-colors">{artwork.artist.name}</span>
           </div>
           <div className="mt-4 flex justify-between items-center">
             <span className="text-xs text-slate-500">Price</span>

@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Artwork, Transaction } from '../types';
 import { getArtworkById, getTransactionsByArtworkId } from '../data/mock';
 import { Button } from '../components/Button';
@@ -63,8 +62,10 @@ const ArtworkDetailPage: React.FC = () => {
           <h1 className="text-3xl font-bold">{artwork.title}</h1>
           <div className="flex items-center mt-2 space-x-2">
             <span className="text-slate-400">by</span>
-            <img src={artwork.artist.avatarUrl} alt={artwork.artist.name} className="w-6 h-6 rounded-full" />
-            <span className="font-semibold text-violet-400">{artwork.artist.name}</span>
+            <Link to={`/profile/${artwork.artist.id}`} className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <img src={artwork.artist.avatarUrl} alt={artwork.artist.name} className="w-6 h-6 rounded-full" />
+              <span className="font-semibold text-violet-400">{artwork.artist.name}</span>
+            </Link>
           </div>
           <p className="mt-4 text-slate-300">{artwork.description}</p>
         </div>

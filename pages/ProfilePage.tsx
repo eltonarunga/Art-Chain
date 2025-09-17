@@ -1,32 +1,53 @@
-
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Artwork, User } from '../types';
-import { mockUsers, getArtworks } from '../data/mock';
+import { mockUsers, getArtworks, getUserById } from '../data/mock';
 import ArtworkCard from '../components/ArtworkCard';
 import SkeletonCard from '../components/SkeletonCard';
 import { Button } from '../components/Button';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const ProfilePage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<User | null>(null);
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [createdArtworks, setCreatedArtworks] = useState<Artwork[]>([]);
+  const [collectedArtworks, setCollectedArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'created' | 'collected'>('created');
+
+  // For simulation, the "logged in" user is always mockUsers[0]
+  const loggedInUser = mockUsers[0];
+  const isMyProfile = !id || id === loggedInUser.id;
 
   useEffect(() => {
     const loadProfileData = async () => {
       setIsLoading(true);
-      // Simulate fetching logged-in user and their artworks
-      setUser(mockUsers[0]);
+      
+      const profileUserId = id || loggedInUser.id;
+      const userData = await (profileUserId === loggedInUser.id ? Promise.resolve(loggedInUser) : getUserById(profileUserId));
+      
+      if (!userData) {
+          setUser(null);
+          setIsLoading(false);
+          return;
+      }
+      
+      setUser(userData);
+
       const allArtworks = await getArtworks();
-      setArtworks(allArtworks);
+      setCreatedArtworks(allArtworks.filter(art => art.artist.id === userData.id));
+      if(isMyProfile) {
+          // Mock collected artworks for logged in user
+          setCollectedArtworks(allArtworks.slice(0, 2));
+      }
       setIsLoading(false);
     };
 
     loadProfileData();
-  }, []);
-
-  const createdArtworks = artworks.filter(art => art.artist.id === user?.id);
-  const collectedArtworks = artworks.slice(0, 2); // Mock collected artworks
+    if (!isMyProfile) {
+        setActiveTab('created');
+    }
+  }, [id, isMyProfile, loggedInUser.id]);
 
   const renderArtworks = (list: Artwork[]) => {
     if (isLoading) {
@@ -38,23 +59,29 @@ const ProfilePage: React.FC = () => {
     return list.map(art => <ArtworkCard key={art.id} artwork={art} />);
   };
   
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-96"><LoadingSpinner className="w-12 h-12" /></div>;
+  }
+
+  if (!user) {
+    return <div className="text-center text-xl">User not found.</div>;
+  }
+  
   return (
     <div className="space-y-8">
-      {user && (
-        <header className="relative h-48 bg-slate-900 rounded-lg border border-slate-800">
-          <div className="absolute -bottom-12 left-8">
-            <img src={user.avatarUrl} alt={user.name} className="w-32 h-32 rounded-full border-4 border-slate-950" />
-          </div>
-        </header>
-      )}
+      <header className="relative h-48 bg-slate-900 rounded-lg border border-slate-800">
+        <div className="absolute -bottom-12 left-8">
+          <img src={user.avatarUrl} alt={user.name} className="w-32 h-32 rounded-full border-4 border-slate-950" />
+        </div>
+      </header>
 
       <div className="pt-16 px-8">
         <div className="flex justify-between items-start">
             <div>
-                 <h1 className="text-3xl font-bold">{user?.name || '...'}</h1>
-                 <p className="text-sm font-mono text-slate-400 mt-1">{user?.walletAddress || '...'}</p>
+                 <h1 className="text-3xl font-bold">{user.name}</h1>
+                 <p className="text-sm font-mono text-slate-400 mt-1">{user.walletAddress}</p>
             </div>
-            <Button variant="outline">Edit Profile</Button>
+            {isMyProfile && <Button variant="outline">Edit Profile</Button>}
         </div>
       </div>
       
@@ -63,9 +90,11 @@ const ProfilePage: React.FC = () => {
           <button onClick={() => setActiveTab('created')} className={`py-4 px-1 text-lg font-medium transition-colors ${activeTab === 'created' ? 'border-b-2 border-violet-500 text-white' : 'text-slate-400 hover:text-white'}`}>
             Created ({createdArtworks.length})
           </button>
-          <button onClick={() => setActiveTab('collected')} className={`py-4 px-1 text-lg font-medium transition-colors ${activeTab === 'collected' ? 'border-b-2 border-violet-500 text-white' : 'text-slate-400 hover:text-white'}`}>
-            Collected ({collectedArtworks.length})
-          </button>
+          {isMyProfile && (
+            <button onClick={() => setActiveTab('collected')} className={`py-4 px-1 text-lg font-medium transition-colors ${activeTab === 'collected' ? 'border-b-2 border-violet-500 text-white' : 'text-slate-400 hover:text-white'}`}>
+              Collected ({collectedArtworks.length})
+            </button>
+          )}
         </nav>
       </div>
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useWallet from '../hooks/useWallet';
@@ -34,7 +33,6 @@ const Header: React.FC = () => {
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300">
             <Link to="/" className="hover:text-violet-400 transition-colors">Explore</Link>
-            <Link to="/create" className="hover:text-violet-400 transition-colors">Create</Link>
             <Link to="/profile" className="hover:text-violet-400 transition-colors">Profile</Link>
           </nav>
         </div>
@@ -45,8 +43,12 @@ const Header: React.FC = () => {
             <input type="search" placeholder="Search artworks..." className="pl-10 pr-4 py-2 text-sm bg-slate-900 border border-slate-800 rounded-full w-64 focus:ring-2 focus:ring-violet-500 focus:outline-none transition-all" />
           </div>
 
+          <Link to="/create">
+            <Button variant="secondary" className="px-5 py-2">Create</Button>
+          </Link>
+
           <div className="hidden sm:flex items-center space-x-2 text-sm bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-green-400"><path d="M12 2c2.4 0 4.7.9 6.5 2.5a10.1 10.1 0 0 1 3.5 6.5c0 2.4-.9 4.7-2.5 6.5a10.1 10.1 0 0 1-6.5 3.5c-2.4 0-4.7-.9-6.5-2.5A10.1 10.1 0 0 1 2 12c0-2.4.9-4.7 2.5-6.5A10.1 10.1 0 0 1 8.5 2H12Z"></path><path d="M12 12h.01"></path><path d="M16 6h.01"></path><path d="M18 10h.01"></path><path d="M18 14h.01"></path><path d="M16 18h.01"></path><path d="M12 22h.01"></path><path d="M8 18h.01"></path><path d="M6 14h.01"></path><path d="M6 10h.01"></path><path d="M8 6h.01"></path></svg>
+             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-green-400"><path d="M12 2c2.4 0 4.7.9 6.5 2.5a10.1 10.1 0 0 1 3.5 6.5c0 2.4-.9 4.7-2.5 6.5a10.1 10.1 0 0 1-6.5 3.5c-2.4 0-4.7-.9-6.5-2.5A10.1 10.1 0 0 1 2 12c0-2.4.9 4.7 2.5-6.5A10.1 10.1 0 0 1 8.5 2H12Z"></path><path d="M12 12h.01"></path><path d="M16 6h.01"></path><path d="M18 10h.01"></path><path d="M18 14h.01"></path><path d="M16 18h.01"></path><path d="M12 22h.01"></path><path d="M8 18h.01"></path><path d="M6 14h.01"></path><path d="M6 10h.01"></path><path d="M8 6h.01"></path></svg>
             <span>Gas: <span className="font-semibold text-green-400">{gasPrice}</span> Gwei</span>
           </div>
 
