@@ -13,7 +13,8 @@ export interface Artwork {
   imageUrl: string;
   price: number;
   category: 'Abstract' | 'Sci-Fi' | 'Fantasy' | 'Landscape';
-  artist: User;
+  artist: User; // The creator
+  owner: User; // The current owner
   createdAt: string;
   nftDetails: {
     tokenId: string;

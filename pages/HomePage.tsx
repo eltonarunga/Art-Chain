@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Artwork } from '../types';
-import { getArtworks } from '../data/mock';
+import { getArtworks } from '../data/api';
 import ArtworkCard from '../components/ArtworkCard';
 import SkeletonCard from '../components/SkeletonCard';
 
@@ -12,7 +12,7 @@ const HomePage: React.FC = () => {
     const loadArtworks = async () => {
       setIsLoading(true);
       const data = await getArtworks();
-      setArtworks(data);
+      setArtworks(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
       setIsLoading(false);
     };
     loadArtworks();
@@ -20,7 +20,7 @@ const HomePage: React.FC = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />);
+      return Array.from({ length: 8 }).map((_, index) => <SkeletonCard key={index} />);
     }
 
     if (artworks.length === 0) {

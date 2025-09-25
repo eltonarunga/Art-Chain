@@ -15,7 +15,6 @@ export const mockArtworks: Artwork[] = [
     price: 2.5,
     category: 'Abstract',
     artist: mockUsers[0],
-    // FIX: Added missing 'owner' property.
     owner: mockUsers[0],
     createdAt: '2023-10-26T10:00:00Z',
     nftDetails: { tokenId: '101', contractAddress: '0xabc...def' },
@@ -28,7 +27,6 @@ export const mockArtworks: Artwork[] = [
     price: 5.1,
     category: 'Sci-Fi',
     artist: mockUsers[1],
-    // FIX: Added missing 'owner' property.
     owner: mockUsers[1],
     createdAt: '2023-10-25T14:30:00Z',
     nftDetails: { tokenId: '102', contractAddress: '0xabc...def' },
@@ -41,7 +39,6 @@ export const mockArtworks: Artwork[] = [
     price: 3.0,
     category: 'Fantasy',
     artist: mockUsers[2],
-    // FIX: Added missing 'owner' property.
     owner: mockUsers[2],
     createdAt: '2023-10-24T18:45:00Z',
     nftDetails: { tokenId: '103', contractAddress: '0xabc...def' },
@@ -54,7 +51,6 @@ export const mockArtworks: Artwork[] = [
     price: 1.8,
     category: 'Landscape',
     artist: mockUsers[0],
-    // FIX: Added missing 'owner' property.
     owner: mockUsers[0],
     createdAt: '2023-10-23T09:15:00Z',
     nftDetails: { tokenId: '104', contractAddress: '0xabc...def' },
@@ -67,8 +63,7 @@ export const mockArtworks: Artwork[] = [
     price: 4.2,
     category: 'Sci-Fi',
     artist: mockUsers[1],
-    // FIX: Added missing 'owner' property.
-    owner: mockUsers[2],
+    owner: mockUsers[2], // Example of a collected artwork
     createdAt: '2023-10-22T11:00:00Z',
     nftDetails: { tokenId: '105', contractAddress: '0xabc...def' },
   },
@@ -80,8 +75,7 @@ export const mockArtworks: Artwork[] = [
     price: 2.2,
     category: 'Fantasy',
     artist: mockUsers[2],
-    // FIX: Added missing 'owner' property.
-    owner: mockUsers[0],
+    owner: mockUsers[0], // Example of a collected artwork
     createdAt: '2023-10-21T16:20:00Z',
     nftDetails: { tokenId: '106', contractAddress: '0xabc...def' },
   },
@@ -91,9 +85,6 @@ export const mockTransactions: Transaction[] = [
     { id: 't1', artworkId: 1, type: 'Mint', from: '0x0000...0000', to: mockUsers[0].walletAddress, price: 0, timestamp: '2023-10-26T10:00:00Z', txHash: '0xaaaa...1111' },
     { id: 't2', artworkId: 2, type: 'Mint', from: '0x0000...0000', to: mockUsers[1].walletAddress, price: 0, timestamp: '2023-10-25T14:30:00Z', txHash: '0xbbbb...2222' },
     { id: 't3', artworkId: 3, type: 'Mint', from: '0x0000...0000', to: mockUsers[2].walletAddress, price: 0, timestamp: '2023-10-24T18:45:00Z', txHash: '0xcccc...3333' },
+    { id: 't4', artworkId: 5, type: 'Sale', from: mockUsers[1].walletAddress, to: mockUsers[2].walletAddress, price: 4.2, timestamp: '2023-10-23T12:00:00Z', txHash: '0xdddd...4444' },
+    { id: 't5', artworkId: 6, type: 'Sale', from: mockUsers[2].walletAddress, to: mockUsers[0].walletAddress, price: 2.2, timestamp: '2023-10-22T17:00:00Z', txHash: '0xeeee...5555' },
 ];
-
-export const getArtworks = (): Promise<Artwork[]> => new Promise(resolve => setTimeout(() => resolve(mockArtworks), 1000));
-export const getArtworkById = (id: number): Promise<Artwork | undefined> => new Promise(resolve => setTimeout(() => resolve(mockArtworks.find(art => art.id === id)), 500));
-export const getTransactionsByArtworkId = (id: number): Promise<Transaction[]> => new Promise(resolve => setTimeout(() => resolve(mockTransactions.filter(tx => tx.artworkId === id)), 500));
-export const getUserById = (id: string): Promise<User | undefined> => new Promise(resolve => setTimeout(() => resolve(mockUsers.find(user => user.id === id)), 500));

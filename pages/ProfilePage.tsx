@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Artwork, User } from '../types';
-import { mockUsers, getArtworks, getUserById } from '../data/mock';
+import { getArtworks, getUserById, getCurrentUser } from '../data/api';
 import ArtworkCard from '../components/ArtworkCard';
 import SkeletonCard from '../components/SkeletonCard';
 import { Button } from '../components/Button';
@@ -10,21 +10,23 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<User | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
   const [createdArtworks, setCreatedArtworks] = useState<Artwork[]>([]);
   const [collectedArtworks, setCollectedArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'created' | 'collected'>('created');
 
-  // For simulation, the "logged in" user is always mockUsers[0]
-  const loggedInUser = mockUsers[0];
-  const isMyProfile = !id || id === loggedInUser.id;
+  const isMyProfile = !id || (loggedInUser && id === loggedInUser.id);
 
   useEffect(() => {
     const loadProfileData = async () => {
       setIsLoading(true);
       
-      const profileUserId = id || loggedInUser.id;
-      const userData = await (profileUserId === loggedInUser.id ? Promise.resolve(loggedInUser) : getUserById(profileUserId));
+      const sessionUser = await getCurrentUser();
+      setLoggedInUser(sessionUser);
+
+      const profileUserId = id || sessionUser.id;
+      const userData = await getUserById(profileUserId);
       
       if (!userData) {
           setUser(null);
@@ -35,19 +37,20 @@ const ProfilePage: React.FC = () => {
       setUser(userData);
 
       const allArtworks = await getArtworks();
-      setCreatedArtworks(allArtworks.filter(art => art.artist.id === userData.id));
-      if(isMyProfile) {
-          // Mock collected artworks for logged in user
-          setCollectedArtworks(allArtworks.slice(0, 2));
-      }
+      const created = allArtworks.filter(art => art.artist.id === userData.id);
+      const collected = allArtworks.filter(art => art.owner.id === userData.id && art.artist.id !== userData.id);
+
+      setCreatedArtworks(created.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setCollectedArtworks(collected.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      
       setIsLoading(false);
     };
 
     loadProfileData();
-    if (!isMyProfile) {
+    if (id && loggedInUser && id !== loggedInUser.id) {
         setActiveTab('created');
     }
-  }, [id, isMyProfile, loggedInUser.id]);
+  }, [id, loggedInUser?.id]);
 
   const renderArtworks = (list: Artwork[]) => {
     if (isLoading) {

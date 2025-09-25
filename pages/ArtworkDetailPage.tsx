@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Artwork, Transaction } from '../types';
-import { getArtworkById, getTransactionsByArtworkId } from '../data/mock';
+import { Artwork, Transaction, User } from '../types';
+import { getArtworkById, getTransactionsByArtworkId, purchaseArtwork, getCurrentUser } from '../data/api';
 import { Button } from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../contexts/ToastContext';
@@ -10,32 +10,51 @@ const ArtworkDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBuying, setIsBuying] = useState(false);
   const { addToast } = useToast();
 
-  useEffect(() => {
-    const fetchArtwork = async () => {
-      if (id) {
-        setIsLoading(true);
-        const artId = parseInt(id, 10);
-        const artData = await getArtworkById(artId);
-        const txData = await getTransactionsByArtworkId(artId);
-        setArtwork(artData || null);
-        setTransactions(txData);
-        setIsLoading(false);
-      }
-    };
-    fetchArtwork();
+  const fetchArtworkData = useCallback(async () => {
+    if (id) {
+      const artId = parseInt(id, 10);
+      const [artData, txData, userData] = await Promise.all([
+        getArtworkById(artId),
+        getTransactionsByArtworkId(artId),
+        getCurrentUser(),
+      ]);
+      setArtwork(artData || null);
+      setTransactions(txData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+      setCurrentUser(userData);
+    }
   }, [id]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchArtworkData().finally(() => setIsLoading(false));
+  }, [id, fetchArtworkData]);
   
   const handleBuy = async () => {
+    if (!artwork || !currentUser) return;
+
+    if (artwork.owner.id === currentUser.id) {
+        addToast("You already own this artwork.", 'error');
+        return;
+    }
+
     setIsBuying(true);
     addToast("Initiating transaction...", 'success');
-    // Simulate blockchain transaction
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    addToast("Purchase successful! NFT transferred.", 'success');
-    setIsBuying(false);
+    try {
+      await purchaseArtwork(artwork.id, currentUser);
+      addToast("Purchase successful! NFT transferred.", 'success');
+      // Refetch data to show new owner and transaction
+      await fetchArtworkData();
+    } catch (error) {
+      console.error(error);
+      addToast("Purchase failed. Please try again.", 'error');
+    } finally {
+      setIsBuying(false);
+    }
   }
 
   if (isLoading) {
@@ -49,6 +68,8 @@ const ArtworkDetailPage: React.FC = () => {
   if (!artwork) {
     return <div className="text-center text-xl">Artwork not found.</div>;
   }
+  
+  const isOwner = currentUser?.id === artwork.owner.id;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -60,11 +81,18 @@ const ArtworkDetailPage: React.FC = () => {
       <div className="lg:col-span-2 space-y-6">
         <div className="p-6 bg-slate-900 rounded-lg border border-slate-800">
           <h1 className="text-3xl font-bold">{artwork.title}</h1>
-          <div className="flex items-center mt-2 space-x-2">
-            <span className="text-slate-400">by</span>
+          <div className="flex items-center mt-2 space-x-2 text-sm">
+            <span className="text-slate-400">Created by</span>
             <Link to={`/profile/${artwork.artist.id}`} className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <img src={artwork.artist.avatarUrl} alt={artwork.artist.name} className="w-6 h-6 rounded-full" />
               <span className="font-semibold text-violet-400">{artwork.artist.name}</span>
+            </Link>
+          </div>
+           <div className="flex items-center mt-1 space-x-2 text-sm">
+            <span className="text-slate-400">Owned by</span>
+            <Link to={`/profile/${artwork.owner.id}`} className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <img src={artwork.owner.avatarUrl} alt={artwork.owner.name} className="w-6 h-6 rounded-full" />
+              <span className="font-semibold text-slate-300">{artwork.owner.name}</span>
             </Link>
           </div>
           <p className="mt-4 text-slate-300">{artwork.description}</p>
@@ -73,18 +101,18 @@ const ArtworkDetailPage: React.FC = () => {
         <div className="p-6 bg-slate-900 rounded-lg border border-slate-800">
             <div className="text-sm text-slate-400">Current Price</div>
             <div className="text-4xl font-bold flex items-center mt-1">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mr-2"><path d="M12 22V12m0-10v10m0 0L8 8m4 4l4-4m-4 10l-4-4m4 4l4 4"/></svg>
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mr-2"><path d="M12 22V12m0-10v10m0 0L8 8m4 4l4-4m-4 10l-4-4m4 4l4 4"/></svg>
               {artwork.price} ETH
             </div>
-            <Button onClick={handleBuy} disabled={isBuying} className="w-full mt-6 py-3 text-lg">
-                {isBuying ? <><LoadingSpinner className="mr-2"/>Processing...</> : 'Buy Now'}
+            <Button onClick={handleBuy} disabled={isBuying || isOwner} className="w-full mt-6 py-3 text-lg">
+                {isOwner ? 'You own this item' : (isBuying ? <><LoadingSpinner className="mr-2"/>Processing...</> : 'Buy Now')}
             </Button>
         </div>
 
         <div className="p-6 bg-slate-900 rounded-lg border border-slate-800">
           <h3 className="font-bold text-lg mb-4">Transaction History</h3>
           <ul className="space-y-3">
-            {transactions.map(tx => (
+            {transactions.length > 0 ? transactions.map(tx => (
               <li key={tx.id} className="flex justify-between items-center text-sm">
                 <div className="flex items-center">
                    <span className={`px-2 py-0.5 rounded-full text-xs mr-3 ${tx.type === 'Mint' ? 'bg-blue-900 text-blue-300' : 'bg-green-900 text-green-300'}`}>{tx.type}</span>
@@ -98,7 +126,7 @@ const ArtworkDetailPage: React.FC = () => {
                    <p className="text-slate-500 text-xs">{new Date(tx.timestamp).toLocaleDateString()}</p>
                 </div>
               </li>
-            ))}
+            )) : <p className="text-slate-500 text-sm">No transactions yet.</p>}
           </ul>
         </div>
       </div>
